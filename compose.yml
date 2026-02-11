@@ -1,6 +1,6 @@
 services:
   spark-master:
-    image: spark:3.5.1-python3              #use the official apacher spark image with python 3 suort (v3.5.7)
+    image: apache/spark:3.5.1-scala2.12-java11-python3-r-ubuntu              #use the official apacher spark image with python 3 suort (v3.5.7)
     container_name: spark-master            #assign a fixed, human- redeable ame to this container 
     command: [                              #overide the defult container command to start spark master manaually
       "/opt/spark/bin/spark-class",                
@@ -24,7 +24,7 @@ services:
   # -------------------------------------------------------------------------------------------------
 
   spark-worker:
-    image: spark:3.5.1-python3
+    image: apache/spark:3.5.1-scala2.12-java11-python3-r-ubuntu
     container_name: spark-worker                   # Name for the worker container 
     command: [                                     # Override the defult container command to start sark master manually
       "/opt/spark/bin/spark-class",
@@ -40,6 +40,24 @@ services:
       - spark-data:/opt/spark-data       # Share the same named volume for logs/data if needed
     networks:
       - stock_data                      # Attach to same network so it can communicate with the master 
+
+
+  consumer:
+    build:
+      context: ./consumer             # Use same Apache Spark image for PySpark streaming
+      dockerfile: Dockerfile
+    image: stream_consumer
+    container_name: consumer          # Assign a name for the streaming job container
+    depends_on:
+      - spark-master
+      - kafka                      # Wait for Kafka and Spark to be online before starting job               
+    restart: unless-stopped
+    volumes:
+      - ivy_cache:/opt/spark/work-dir/.ivy2
+      - ./consumer:/opt/spark/work-dir/apps
+    networks:
+      - stock_data
+
 
 
   #----------------------------KAFKA SERVICE --------------------
@@ -59,7 +77,7 @@ services:
       # Define all listener endpoints and ports
       KAFKA_LISTENERS: PLAINTEXT_INTERNAL://kafka:9092,PLAINTEXT_EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
       # Map listeners names to security protocols
-      KAFKA_LISTENERS_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT_EXTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL   # Brokers communicate via internal listener
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER            # Controller listener name
       #tell kafka how it shoyld advertise itself to client
