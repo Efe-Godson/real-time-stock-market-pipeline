@@ -64,7 +64,21 @@ This project implements a real-time data pipeline that ingests live market data,
 ## Outcomes
 - Low-latency real-time analytics  
 - Reliable performance at scale  
-- Faster decision-making for clients  
+- Faster decision-making for clients
+
+<img src="img/dash.jpg" width="900">
+<p>
+This dashboard presents real-time stock performance, including price trends, volatility, and intraday returns.
+It demonstrates how processed streaming data is transformed into actionable insights for decision-making.
+</p>
+
+<p>
+Built in Power BI, this dashboard connects directly to PostgreSQL to visualize real-time processed data from the streaming pipeline.
+</p>
 
 ## Project Status
 Production-style implementation designed for scalability and future extension.
+
+
+
+
